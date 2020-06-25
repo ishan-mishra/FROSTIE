@@ -1,2 +1,2 @@
 # FROSTIE
-Framework for Robust detection of Organics using Statistical Techniques for Icy moons from Exoplanets
+**F**ramework for **R**obust detection of **O**rganics using **S**tatistical **T**echniques for **I**cy moons from **E**xoplanets
