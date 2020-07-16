@@ -1,0 +1,13 @@
+name: frostie
+dependencies:
+  - python=3.7
+  - numpy
+  - scipy
+  - matplotlib
+  - pandas
+  - pip
+  - jupyter
+  - pip:
+    - pandexo.engine
+    - dynesty
+    - corner 

@@ -1,13 +1,11 @@
-"""Module with functions and classes for different Bayesian retrieval frameworks
-
+"""Functions and classes for different Bayesian retrieval frameworks
 """
 
 import numpy as np
 from pandas import DataFrame, read_csv
 import pandas as pd 
 from scipy.interpolate import interp1d
-import jdap.utils as utils
-from pyhapke import pyhapke
+from frostie import utils
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import time
@@ -182,64 +180,6 @@ class Dynesty():
         return transformed
         
 '''
-
-def LM_2comp(param_dict):
-    """Two component Hapke reflectance model.
-    
-    Parameters
-    ----------
-    param_dict: dictionary of parameters for the model. 
-       Contains the following keywords:
-       'mu_0': cosine of the incidence angle (float)
-       'mu': cosine of the emergence angle (float)
-       'g': phase angle in degrees (float)
-       'B': backscattering function value (float)
-       'K': porosity coefficient
-       's': internal scattering coefficient inside the particle
-       'comp_1': dict containing 'n', 'k', 'wav'(in microns),'log10D' (log10 grain size in microns) 
-        and 'f' (number density fraction) of component 1
-       'comp_2': dict containing 'n', 'k', 'wav'(in microns),'log10D' (log10 grain size in microns) 
-        and 'f' (number density fraction) of component 2
-    **kwags: arguments for other functions
-    
-    Returns
-    -------
-    model: 1D nupy float array
-        model reflectance spectrum
-    wav_model: 1D numpy array
-        corresponding wavelength axis in microns
-    """
-    
-    pd = param_dict
-    comp_1 = pd['comp_1']
-    comp_2 = pd['comp_2']
-    
-    
-    b_1 = pyhapke.get_b(comp_1['n'],comp_1['k'],comp_1['wav'],10**comp_1['log10D'],pd['s'])
-    b_2 = pyhapke.get_b(comp_2['n'],comp_2['k'],comp_2['wav'],10**comp_2['log10D'],pd['s'])
-    
-    c_1 = pyhapke.get_c(comp_1['n'],comp_1['k'],comp_1['wav'],10**comp_1['log10D'],pd['s'])
-    c_2 = pyhapke.get_c(comp_2['n'],comp_2['k'],comp_2['wav'],10**comp_2['log10D'],pd['s'])
-    
-    p_1 = pyhapke.get_p(pd['g'],type='HG2',b=b_1,c=c_1)
-    p_2 = pyhapke.get_p(pd['g'],type='HG2',b=b_2,c=c_2)
-    
-    w_1 = pyhapke.get_w(comp_1['n'],comp_1['k'],comp_1['wav'],10**comp_1['log10D'],pd['s'])
-    w_2 = pyhapke.get_w(comp_2['n'],comp_2['k'],comp_2['wav'],10**comp_2['log10D'],pd['s'])
-    
-    model_1 = pyhapke.get_r(w_1,pd['mu'],pd['mu_0'],pd['B'],p_1,pd['K'])
-    wav_1 = comp_1['wav']
-    
-    model_2 = pyhapke.get_r(w_2,pd['mu'],pd['mu_0'],pd['B'],p_2,pd['K'])
-    wav_2 = comp_2['wav']
-    
-    match = utils.spectra_match(model_1,wav_1,model_2,wav_2)
-
-    model_1,model_2,wav_lm = match['new_data_1'],match['new_data_2'],match['wav_common']    
-    
-    model_lm = comp_1['f']*model_1 + comp_2['f']*model_2
-    
-    return model_lm, wav_lm 
     
 def Z_to_sigma(ln_Z1, ln_Z2):
     """Convert log-evidences of two models to a sigma confidence level
