@@ -7,6 +7,7 @@ dependencies:
   - pandas
   - pip
   - jupyter
+  - xlrd >= 1.0.0
   - pip:
     - pandexo.engine
     - dynesty
