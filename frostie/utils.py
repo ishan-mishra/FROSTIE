@@ -42,6 +42,16 @@ def nan_helper(y):
     
     return nans, index
 
+def wav_bins(wav):
+    """Gives the wavelength bin array for a given wavelength array"""
+
+    wav_bins = np.empty(wav.size-1)
+
+    for i in range(wav.size-1):
+        wav_bins[i] = wav[i+1] - wav[i]
+        
+    return wav_bins
+
 
 def despike_data(y,x,window_len=21,iqr_factor=2.5,x_start=2.0,x_end=5.0):
     """Flags points that are beyond a caculated threshold within the moving window. 
@@ -387,6 +397,72 @@ def spectra_match(data_1,wav_1,data_2,wav_2):
         binned = {'new_data_1':new_data_1,'new_data_2':new_data_2,'wav_common':wav_common}
 
         return binned
+    
+    
+def spectra_list_match(data_list,wav_list):
+    
+    '''
+    Modifies the input spectra so that their wavelength axes are the same. The common wavelength
+    axis is the wavelength array from wav_list with the lowest resolution.
+ 
+    Parameters
+    ----------
+    data_list: list of 1D numpy arrays
+        list of data arrays
+    wav_list: list of 1D numpy arrays
+        list of wavelength arrays
+
+    Returns
+    -------
+
+    data_matched_list: list of 1D numpy arrays
+        list of modified data arrays
+    wav_common: 1D numpy array
+        common wavelength axis
+    '''
+    
+    min_res_list = []
+    
+    for i in range(len(data_list)):
+        res = np.mean(wav_bins(data_list[i]))
+        min_res_list.append(res)
+    i_max= np.argmax(np.array(min_res_list))
+        
+    wav_common = np.copy(wav_list[i_max])
+    
+    # trim wav_common's lower end to be close to the highest lower end value among all 
+    # wavelength arrays
+    
+    wav_low = max([wav_list[i][0] for i in range(len(wav_list))])
+    
+    idx_low = find_nearest(wav_common, wav_low)
+    
+    wav_common = wav_common[idx_low:]
+    
+    # trim wav_common's upper end to be close to the lowest upper end value among all 
+    # wavelength arrays
+    
+    wav_high = min([wav_list[i][-1] for i in range(len(wav_list))])
+    
+    idx_high = find_nearest(wav_common, wav_high)
+    
+    wav_common = wav_common[:idx_high]
+        
+    # match all data arrays to this modified wav_common axis
+        
+    data_matched_list = []
+        
+    for i in range(len(data_list)):
+        data_mod = []
+        for j in range(wav_common.size):
+            idx = find_nearest(wav_list[i],wav_common[j])
+            data_mod.append(data_list[i][idx])
+            
+        data_matched_list.append(np.array(data_mod))
+        
+    return data_matched_list, wav_common
+            
+
 
 
 

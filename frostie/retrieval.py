@@ -664,3 +664,63 @@ def plot_bestfit(samples,data,wav_data,data_err,model, Nspectra=200,**kwargs):
     
     
 '''    
+
+def get_ML_params(samples):
+    """Function to return the maximum likelihood solution from the dynesty samples
+    
+    Parameter
+    ---------
+    samples: dynesty.results.Results
+        results dictionary of a NestedSampler object    
+    """
+    
+    idx = np.where(samples['logl'] == samples['logl'].max())[0]
+
+    return samples['samples'][idx][0]
+
+
+def red_chi_sq(model, wav_model, data, noise, wav_data, num_params):
+    """calculates reduced chi-squared of model's fit to the data
+    """
+    
+    # bin the arrays to a common wavelength axis if they are not the same
+    
+    if wav_model.size != wav_data.size:
+        
+        matched_list, wav_common = utils.spectra_list_match([model, data, noise],[wav_model, wav_data, wav_data])
+        model_new, data_new, noise_new = matched_list[0], matched_list[1], matched_list[2]
+        
+        red_chi_sq = np.sum(((model_new - data_new)**2)/((noise_new)**2))/(data_new.size - num_params)
+        
+    else:
+        red_chi_sq = np.sum(((model - data)**2)/((noise)**2))/(data.size - num_params)
+        
+    return red_chi_sq
+
+def Z_to_sigma(ln_Z1, ln_Z2):
+    """Convert log-evidences of two models to a sigma confidence level
+    
+    Prameters
+    ---------
+    ln_Z1: float
+        log of Bayesian evidence of model 1
+    ln_Z2: float
+        log of Bayesian evidence of model 2
+        
+    Returns
+    -------
+    
+    B: float
+        Bayes factor of model 1 to model 2
+    sigma: float
+        sigma evidence of model 1 over model 2
+    """
+    np.set_printoptions(precision=50)
+    B = np.exp(ln_Z1 - ln_Z2)
+    if B < 1.0:
+        warnings.warn('Bayes factor is less than 1; sigma-significance is invalid')
+    p = np.real(np.exp(W((-1.0/(B*np.exp(1))),-1)))
+    sigma = np.sqrt(2)*erfcinv(p)
+    #print "p-value = ", p
+    #print "n_sigma = ", sigma
+    return B, sigma

@@ -3,6 +3,8 @@
 import numpy as np
 import pandas as pd
 import os
+from frostie import utils
+from scipy import signal
 
 def get_si(start_wav, end_wav, file='kurucz'):
     """Function to read in the solar irradiance data
@@ -125,3 +127,57 @@ def get_NIMS_wav():
     wav = np.loadtxt(filename)
     
     return wav
+
+
+def nims_syn_data(model, wav_model, wav_nims):
+    """Function that uses Galileo/NIMS spectral response function to bin a model specrtrum to the NIMS resolution
+    
+    Parameters
+    ----------
+    
+    model: 1D numpy float array
+        the model spectrum values
+    wav_model: 1D numpy float array
+        wavelength array for the model spectrum
+    wav_nims: 1D numpy float array
+        wavelength array for the NIMS channels to bin to
+        
+    Returns
+    -------
+    
+    model_binned: 1D numpy float array
+        the binned model spectrum
+    """
+    
+
+    
+    # Loop over the wavelength channels in wav_nims, and calculate the binned value in each channel
+    
+    model_binned = []
+    
+    for channel in wav_nims:
+        
+        # find the closest wavelength in the model spectrum to channel
+        
+        wav_center = wav_model[utils.find_nearest(wav_model, channel)]
+        
+        # extract the part of the spectrum centered at wav_center and spanning 0.1 microns
+
+        wav_left_ind = utils.find_nearest(wav_model, wav_center - 0.05)
+        wav_right_ind = utils.find_nearest(wav_model, wav_center + 0.05)
+        
+        model_extract = model[wav_left_ind:wav_right_ind]
+        
+        # create a triangular response function (NIMS documentation, Carlson et al., 1992) 
+        # of the same size
+    
+        nims_response = signal.triang(model_extract.size)
+        
+        # calcualte the binned model value for this channel
+        
+        binned = np.sum(model_extract*nims_response)/np.sum(nims_response)
+        
+        model_binned.append(binned)    
+        
+    
+    return np.array(model_binned)
