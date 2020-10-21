@@ -7,6 +7,7 @@ import pandas as pd
 from scipy.interpolate import interp1d
 from frostie import utils
 import matplotlib.pyplot as plt
+from IPython.display import display, Math
 from multiprocessing import Pool
 import time
 from scipy.special import lambertw as W
@@ -19,6 +20,7 @@ import corner
 from scipy.stats import gaussian_kde
 import pickle
 import warnings
+
 
 
 '''
@@ -221,6 +223,65 @@ def get_ML_params(samples):
     idx = np.where(samples['logl'] == samples['logl'].max())[0]
 
     return samples['samples'][idx][0]
+
+def get_conf_int_params(samples, labels, log_ind_list, log_base_list, quantiles=[0.1587, 0.5, 0.8413]):
+    """Function to return the quantile values of each parameter in the dynesty samples
+    
+    Parameter
+    ---------
+    samples: dynesty.results.Results
+        results dictionary of a NestedSampler object 
+    labels: list of str
+        parameter labels in the same order as samples
+    log_ind_list: list of int
+        index of all parameters that are in log-space
+    log_base_list: list of floats
+        logarthmic base of each parameter in log_ind_list
+    quantiles: list of float
+        quantiles to calculate for parameters (default: [-1 simga, median, +1 sigma])
+        
+    Returns
+    -------
+    
+    left: 1D numpy float array
+        quantiles[0] values of all the parameters
+    mid: 1D numpy float array
+        quantiles[1] values of all the parameters
+    right: 1D numpy float array
+        quatiles[2] values of all the parameters
+    
+    """
+    # check that the number of labels are equal to the number of columns in the samples array
+    
+    if len(labels) != samples['samples'].shape[1]:
+        raise ValueError("Number of parameter labels don't match the number of parameters in the samples array")
+        
+    
+    weights = np.exp(samples['logwt'] - samples['logz'][-1])
+    
+    low_all, mid_all, high_all = [], [], []
+
+    for i, label in enumerate(labels):
+        low, mid, high = dynesty.utils.quantile(samples['samples'][:,i],q=quantiles,weights=weights)
+        low_all.append(low)
+        mid_all.append(mid)
+        high_all.append(high)
+        
+        
+        if i in log_ind_list: # if parameter is in log space, also display base to the power values
+            
+            base = log_base_list[log_ind_list.index(i)]
+            
+            txt="\mathrm{{{6}}} = {0:.4f}_{{-{1:.4f}}}^{{+{2:.4f}}} , {{{7}}}^{{{8}}} = {3:.4f}_{{-{4:.4f}}}^{{+{5:.4f}}}"
+            txt = txt.format(mid, mid-low, high-mid, base**mid, base**mid-base**low, base**high-base**mid, labels[i], base, labels[i])
+            display(Math(txt))
+            
+        else:
+            txt="\mathrm{{{3}}} = {0:.4f}_{{-{1:.4f}}}^{{+{2:.4f}}}"
+            txt = txt.format(mid, mid-low, high-mid, labels[i])
+            display(Math(txt))
+    
+    return low_all, mid_all, high_all
 
 def plot_posts(samples, labels,smooth=True, **kwargs):
     """
@@ -530,7 +591,7 @@ def plot_bestfit(bf_model_dict, data,wav_data,data_err,data_label, plot_title,y_
     
     
     
-def save_samples(samples,db_update= True, file_name=None, folder_path='Samples/',db_path='Samples/samples_db.csv'):
+def save_samples(samples,db_update= True, file_name=None, folder_path='Samples/',db_path='Samples/samples_db.csv',**input_dict):
     """Function to store the samples of the posterior function generated in a Bayesian retrieval run. 
     Samples can be from dynesty, emcee, etc. The samples meta-data table (given by db_path) is also updated 
     with user-input details.
@@ -546,6 +607,8 @@ def save_samples(samples,db_update= True, file_name=None, folder_path='Samples/'
         path to folder where samples are supposed to be stored 
     db_path: str
         path to the samples metadata database. 
+    **input_dict:dict
+        optional input for ud_samplesdb function
     """
     
     # if no file name is supplied, generate and print file name using the current data and time
@@ -571,11 +634,11 @@ def save_samples(samples,db_update= True, file_name=None, folder_path='Samples/'
     # update the table at db_path
     
     if db_update:
-        ud_samplesdb(file_name,db_path)
+        ud_samplesdb(file_name,db_path,**input_dict)
     
 
 
-def ud_samplesdb(samples_file,db_path='Samples/samples_db.csv'):
+def ud_samplesdb(samples_file,db_path='Samples/samples_db.csv', user_input=False,**input_dict):
     """The samples meta-data table (given by db_path) is also updated 
     with user-input details.
     
@@ -585,25 +648,54 @@ def ud_samplesdb(samples_file,db_path='Samples/samples_db.csv'):
         name of the pickled file that contains the samples
     db_path: str
         path to the samples database file
+    user_input: Boolean
+        if True, then user is asked for entries through prompts
+    **input_dict: dict
+        dict of inputs to the prompts 
     """
     
     df = pd.read_csv(db_path)
     
-    # ask for user inputs
+    if user_input == True:
     
-    object_type = input ("Object type (eg. dynesty.results.Results,emcee.EnsembleSampler): ")
-    sampler_type = input ("Sampler type (eg. dynesty, emcee, etc.): ")
-    free_params = input ("Free params (eg. log10D_am, phi): ")
-    priors = input ("prior ranges (eg. (1.,3.),(0.01,0.52)): ")
-    data = input ("info. on data (eg. Mean JM0081, wav:2-5 microns): ")
-    data_error = input ("info. on error bars (eg. RMS, inflated 10x): ")
-    notes = input ("any misc. notes (intimate v/s linear, etc.): ")
+        # ask for user inputs
+
+        object_type = input ("Object type (eg. dynesty.results.Results,emcee.EnsembleSampler): ")
+        sampler_type = input ("Sampler type (eg. dynesty, emcee, etc.): ")
+        free_params = input ("Free params (eg. log10D_am, phi): ")
+        priors = input ("prior ranges (eg. (1.,3.),(0.01,0.52)): ")
+        data = input ("info. on data (eg. Mean JM0081, wav:2-5 microns): ")
+        data_error = input ("info. on error bars (eg. RMS, inflated 10x): ")
+        notes = input ("any misc. notes (intimate v/s linear, etc.): ")
+        
+    else:
+        object_type = input_dict['object_type']
+        sampler_type = input_dict['sampler_type']
+        free_params = input_dict['free_params']
+        priors = input_dict['priors']
+        data = input_dict['data']
+        data_error = input_dict['data_error']
+        notes = input_dict['notes']
     
     df2 = {'samples file': samples_file, 'object type': object_type, 'sampler type': sampler_type,
            'free params': free_params, 'priors': priors,'data': data, 'data error':data_error,
           'notes':notes}
     df = df.append(df2, ignore_index=True)
     df.to_csv('Samples/samples_db.csv',index=False)
+    
+
+def load_pickled_samples(file_name):
+    """Loads pickle file that contains results of sampling process.
+    The file is assumed to be stored in the 'Samples/' folder.
+    """
+    
+    if file_name.endswith('.pic') == False:
+        'Input must be a pickle file name'
+    file= open('Samples/'+file_name,'rb')
+    results = pickle.load(file)
+    file.close()
+    
+    return results
 
 '''    
 def plot_bestfit(samples,data,wav_data,data_err,model, Nspectra=200,**kwargs):
