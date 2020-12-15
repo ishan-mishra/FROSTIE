@@ -161,10 +161,10 @@ def nims_syn_data(model, wav_model, wav_nims):
         
         wav_center = wav_model[utils.find_nearest(wav_model, channel)]
         
-        # extract the part of the spectrum centered at wav_center and spanning 0.1 microns
+        # extract the part of the spectrum centered at wav_center and spanning 0.052 microns (2*channel_width)
 
-        wav_left_ind = utils.find_nearest(wav_model, wav_center - 0.05)
-        wav_right_ind = utils.find_nearest(wav_model, wav_center + 0.05)
+        wav_left_ind = utils.find_nearest(wav_model, wav_center - 0.026)
+        wav_right_ind = utils.find_nearest(wav_model, wav_center + 0.026)
         
         model_extract = model[wav_left_ind:wav_right_ind]
         
@@ -175,7 +175,8 @@ def nims_syn_data(model, wav_model, wav_nims):
         
         # calcualte the binned model value for this channel
         
-        binned = np.sum(model_extract*nims_response)/np.sum(nims_response)
+        #binned = np.sum(model_extract*nims_response)/np.sum(nims_response)
+        binned = np.mean(model_extract)
         
         model_binned.append(binned)    
         
