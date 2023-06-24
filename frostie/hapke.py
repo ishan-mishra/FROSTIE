@@ -5,6 +5,9 @@ import warnings
 from .utils import spectra_list_match
 
 class regolith:
+    """
+    Class to set up a 'regolith' made of one or more components and calculate it's reflectance.
+    """
     def __init__(self):
         self.components = []
         self.constant_D = True
