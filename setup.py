@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
+import os
 
 setup(name='frostie',
       version='0.0.1',
-      description='Framework for Robust detection of Organics using Statistical Techniques for Icy moons from Exoplanets',
+      description='An open source modelling and retrieval package for reflectance spectroscopy of planetary surfaces',
       author='Ishan Mishra',
       author_email='im356@cornell.edu',
-      packages=['frostie'])
+      packages=['frostie'],
+      license = 'MIT License')
+
