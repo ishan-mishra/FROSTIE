@@ -14,7 +14,7 @@ While FROSTIE has been only applied to data of Europa so far, with the right inp
 * Support for one component or multi-component model using parameters like abundance, grain-size, and porosity.
 * A Bayesian inference framework that uses the forward model to find the best model (i.e., the best set of species among the candidates) and derive probability distributions of parameters. 
 * Plotting routines to instantly produce publication quality plots
-* A GUI that allows the user to play with the forward model using sliders and buttons to change parameters.
+* An interactive widget that allows the user to play with the forward model using sliders and buttons to change parameters.
 
 FROSTIE is available under the BSD 3-Clause License. If you use FROSTIE, 
 please cite `Mishra et al. (2022) <https://ui.adsabs.harvard.edu/abs/2021Icar..35714215M/abstract>`_. 
@@ -31,6 +31,7 @@ please cite `Mishra et al. (2022) <https://ui.adsabs.harvard.edu/abs/2021Icar..3
    
    content/notebooks/one_component_model
    content/notebooks/multi_component_model
+   content/notebooks/interactive_model
    
 .. toctree::
    :maxdepth: 2
