@@ -10,11 +10,11 @@ setup(name='frostie',
       author_email='ishan.mishra@jpl.nasa.gov',
       packages=['frostie'],
       include_package_data=True,
-      license = 'MIT License'
+      license = 'MIT License',
       install_requires=[
-          numpy,
-          matplotlib,
-          dynesty,
+          'numpy',
+          'matplotlib',
+          'dynesty',
       ],
       zip_safe=False)
 
