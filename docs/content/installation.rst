@@ -1,9 +1,6 @@
 Installation
 ============
 
-Install FROSTIE from GitHub
-___________________________
-
 You can download `FROSTIE from GitHub <https://github.com/ishan-mishra/FROSTIE>`_
 or clone the repository:
 
@@ -11,11 +8,30 @@ or clone the repository:
 		
    git clone https://github.com/ishan-mishra/FROSTIE
 
+
+Linux conda environment setup
+-----------------------------
+
+FROSTIE currently supports Python versions up to ____. You can create a new 
+anaconda environment with, say, the latest version of Python 3.10 via:
+
+.. code-block:: bash
+
+   conda create --name 𝗬𝗢𝗨𝗥_𝗘𝗡𝗩_𝗡𝗔𝗠𝗘_𝗛𝗘𝗥𝗘 python=3.10
+
+Once the basic Python packages are installed in this fresh environment, you
+can activate the environment where POSEIDON will dwell:
+
+.. code-block:: bash
+
+   conda activate 𝗬𝗢𝗨𝗥_𝗘𝗡𝗩_𝗡𝗔𝗠𝗘_𝗛𝗘𝗥𝗘
+
 Then navigate into the 'FROSTIE' directory and install the package via:
 
 .. code-block:: bash
 		
-   pip install .
+   cd FROSTIE
+   pip install -e .
 
 ..
    Install FROSTIE from PyPI
