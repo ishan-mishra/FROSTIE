@@ -31,7 +31,7 @@ License
 
 Copyright 2025 Ishan Mishra
 
-POSEIDON is available under the MIT License.
+FROSTIE is available under the MIT License.
 Please see the LICENSE file for more information.
 
 Contributing to FROSTIE
