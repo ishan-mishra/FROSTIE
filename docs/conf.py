@@ -80,3 +80,8 @@ nbsphinx_prolog = """
 .. note::  `Download full notebook here <https://github.com/MartianColonist/POSEIDON_public/tree/main/docs/{{ docname }}>`_
 """
 '''
+
+nbsphinx_prolog = """
+{% set docname = env.doc2path(env.docname, base=None) %}
+.. note::  `Download full notebook here <https://github.com/ishan-mishra/FROSTIE/tree/main/docs/{{ docname }}>`_
+"""
