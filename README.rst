@@ -7,6 +7,18 @@
    </div>
    <br/><br/>
 
+.. image:: https://readthedocs.org/projects/frostie/badge/?version=latest
+   :target: https://frostie.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
+.. image:: https://img.shields.io/badge/License-MIT-blue.svg
+   :target: https://github.com/ishan-mishra/FROSTIE/blob/main/LICENSE
+   :alt: GitHub License
+
+.. image:: https://github.com/ishan-mishra/FROSTIE/actions/workflows/pytest_testing.yml/badge.svg
+   :target: https://github.com/ishan-mishra/FROSTIE/actions/workflows/pytest_testing.yml
+   :alt: Pytest Test Suite Status
+
 
 **A Python package for analysis of spectrophotometric data of airless planetary surfaces**
 
