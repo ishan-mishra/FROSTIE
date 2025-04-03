@@ -19,7 +19,7 @@ bibliography: paper.bib
 
 # Summary
 
-Test citation [@Mishra:2021]
+Test citation [@Mishra2021]
 
 # Spectrophotometric modelling and retrieval `FROSTIE`
 
