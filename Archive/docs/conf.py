@@ -18,12 +18,12 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'FROSTIE'
-copyright = '2023, Ishan Mishra'
+copyright = '2022, Ishan Mishra'
 author = 'Ishan Mishra'
 root_doc = 'index'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = '1.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -55,18 +55,8 @@ source_suffix = '.rst'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
-html_logo = "frostie_logo.jpeg"
-
-#default alabaster template
-html_sidebars = {
-    '**': [
-        'navigation.html',
-        'relations.html',
-        'searchbox.html',
-        'donate.html',
-    ]
-}
+html_theme = 'sphinx_rtd_theme'
+html_logo = "_static/FROSTIE_logo_2.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -74,9 +64,7 @@ html_sidebars = {
 html_static_path = ['_static']
 
 # provide an option to download the notebooks
-'''
 nbsphinx_prolog = """
 {% set docname = env.doc2path(env.docname, base=None) %}
 .. note::  `Download full notebook here <https://github.com/MartianColonist/POSEIDON_public/tree/main/docs/{{ docname }}>`_
 """
-'''

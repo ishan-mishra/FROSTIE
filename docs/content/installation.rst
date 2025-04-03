@@ -17,14 +17,14 @@ Then navigate into the 'FROSTIE' directory and install the package via:
 		
    pip install .
 
+..
+   Install FROSTIE from PyPI
+   ___________________________
 
-Install FROSTIE from PyPI
-___________________________
+   FROSTIE is also available on the PyPI (Python Package Index), and can be installed using the ``pip`` command
 
-FROSTIE is also available on the PyPI (Python Package Index), and can be installed using the ``pip`` command
+   .. code-block:: bash
+         
+      pip install FROSTIE
 
-.. code-block:: bash
-		
-   pip install FROSTIE
-
-If using this option, you will need to download the the `data folder from FROSTIE's GitHub repository <https://github.com/ishan-mishra/FROSTIE/docs/content/notebooks/data>`_ separately, in order to successfully run the tutorials locally on your computer. 
+   If using this option, you will need to download the the `data folder from FROSTIE's GitHub repository <https://github.com/ishan-mishra/FROSTIE/docs/content/notebooks/data>`_ separately, in order to successfully run the tutorials locally on your computer. 

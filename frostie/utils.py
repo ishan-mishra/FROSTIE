@@ -5,6 +5,7 @@ import os
 import warnings
 
 def load_water_op_cons(wav_low=None, wav_high=None):
+    """Load water ice optical constants included in FROSTIE"""
 
     filename = os.path.abspath(os.path.join(os.path.dirname(__file__),'data',
         'h2o.dat'))
@@ -39,6 +40,7 @@ def load_water_op_cons(wav_low=None, wav_high=None):
 
 
 def load_co2_op_cons(wav_low=None, wav_high=None):
+    """Load carbon dioxide ice optical constants included in FROSTIE"""
 
     filename = os.path.abspath(os.path.join(os.path.dirname(__file__),'data',
         'co2.dat'))

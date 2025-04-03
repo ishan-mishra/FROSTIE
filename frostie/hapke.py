@@ -5,6 +5,9 @@ import warnings
 from .utils import spectra_list_match
 
 class regolith:
+    """
+    Class to set up a 'regolith' made of one or more components and calculate it's reflectance.
+    """
     def __init__(self):
         self.components = []
         self.constant_D = True
@@ -22,14 +25,71 @@ class regolith:
         self.e = e
         self.mu = np.cos(np.deg2rad(self.e))
         self.g = g
+    
+    # use property setter to update mu and mu_0 when i and e update, and vice versa
 
-    def set_porosity(self,p):
-        if p < 0.48:
+    @property
+    def i(self):
+        return self._i
+    
+    @i.setter
+    def i(self, val):
+        self._i = val
+        self._mu_0 = np.cos(np.deg2rad(self._i))
+
+    @property
+    def mu_0(self):
+        return self._mu_0
+    
+    @mu_0.setter
+    def mu_0(self, val):
+        self.i = np.rad2deg(np.arccos(val))
+
+    @property
+    def e(self):
+        return self._e
+    
+    @e.setter
+    def e(self, val):
+        self._e = val
+        self._mu = np.cos(np.deg2rad(self._e))
+
+    @property
+    def mu(self):
+        return self._mu
+    
+    @mu.setter
+    def mu(self, val):
+        self.e = np.rad2deg(np.arccos(val))
+
+    def set_porosity(self,porosity):
+        if porosity < 0.48:
             raise ValueError('Porosity value needs to be higher than 1 for Hapke model to be valid')
         else:
-            self.p = p
-            self.phi = 1 - p
-            self.K = -np.log(1-1.209*self.phi**(2/3))/(1.209*self.phi**(2/3))
+            self.porosity = porosity
+
+    # use property setter to update phi and K when porosity is updated
+
+    @property
+    def porosity(self):
+        return self._porosity
+    
+    @porosity.setter
+    def porosity(self, val):
+        if val < 0.48:
+            raise ValueError('Porosity value needs to be higher than 1 for Hapke model to be valid')
+        else:
+            self._porosity = val
+            self._phi = 1 - self._porosity
+            self._K = -np.log(1-1.209*self._phi**(2/3))/(1.209*self._phi**(2/3))
+
+    @property
+    def phi(self):
+        return self._phi
+    
+    @property
+    def K(self):
+        return self._K
 
     def set_backscattering(self,B):
         self.B = B
@@ -68,7 +128,7 @@ class regolith:
         if len(self.components) == 0:
             raise ValueError('The regolith is empty! Add components to it.')
         elif len(self.components) == 1:
-            
+            comp = self.components[0]
             self.model = self._calculate_r_one_comp()
             self.wav_model = comp['wav']
 
