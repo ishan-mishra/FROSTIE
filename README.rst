@@ -19,6 +19,7 @@
    :target: https://github.com/ishan-mishra/FROSTIE/actions/workflows/pytest_testing.yml
    :alt: Pytest Test Suite Status
 
+|
 
 **A Python package for analysis of spectrophotometric data of airless planetary surfaces**
 
