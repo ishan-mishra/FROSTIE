@@ -7,7 +7,7 @@ setup(name='frostie',
       version='0.9.0',
       description='An open source modelling and retrieval package for reflectance spectroscopy of planetary surfaces',
       author='Ishan Mishra',
-      author_email='im356@cornell.edu',
+      author_email='ishan.mishra@jpl.nasa.gov',
       packages=['frostie'],
       license = 'MIT License')
 
