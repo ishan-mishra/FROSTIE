@@ -22,13 +22,13 @@ def test_hapke():
     example_regolith.calculate_reflectance()
 
     # Step 2: Load the reference spectrum
-    reference = np.loadtxt("water_spectrum.txt")
+    reference = np.loadtxt("./water_spectrum.txt")
     wav_ref = reference[:, 0]
     refl_ref = reference[:, 1]
 
     # Step 3: Compute and print max differences before assertions
     max_refl_diff = np.max(np.abs(example_regolith.model - refl_ref))
-    
+
     print(f"Max reflectance difference: {max_refl_diff:.3e}")
 
     # Step 4: Assert match
