@@ -22,7 +22,7 @@ def test_hapke():
     example_regolith.calculate_reflectance()
 
     # Step 2: Load the reference spectrum
-    reference = np.loadtxt("./water_spectrum.txt")
+    reference = np.loadtxt("tests/water_spectrum.txt")
     wav_ref = reference[:, 0]
     refl_ref = reference[:, 1]
 
