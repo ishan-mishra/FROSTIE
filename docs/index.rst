@@ -45,7 +45,8 @@ please cite `Mishra et al. (2022) <https://ui.adsabs.harvard.edu/abs/2021Icar..3
 .. toctree::
    :maxdepth: 2
    :caption: Code Documentation:
-   
+   content/citations
+   content/contributing
    autoapi/index
 
 
