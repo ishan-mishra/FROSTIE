@@ -30,16 +30,16 @@ class regolith:
 
     @property
     def i(self):
-        return self.i
+        return self._i
     
     @i.setter
     def i(self, val):
-        self.i = val
-        self.mu_0 = np.cos(np.deg2rad(self.i))
+        self._i = val
+        self._mu_0 = np.cos(np.deg2rad(self._i))
 
     @property
     def mu_0(self):
-        return self.mu_0
+        return self._mu_0
     
     @mu_0.setter
     def mu_0(self, val):
@@ -47,49 +47,49 @@ class regolith:
 
     @property
     def e(self):
-        return self.e
+        return self._e
     
     @e.setter
     def e(self, val):
-        self.e = val
-        self._mu = np.cos(np.deg2rad(self.e))
+        self._e = val
+        self._mu = np.cos(np.deg2rad(self._e))
 
     @property
     def mu(self):
-        return self.mu
+        return self._mu
     
     @mu.setter
     def mu(self, val):
         self.e = np.rad2deg(np.arccos(val))
 
-    def set_porosity(self,porosity):
-        if porosity < 0.48:
+    def set_porosity(self,p):
+        if p < 0.48:
             raise ValueError('Porosity value needs to be higher than 1 for Hapke model to be valid')
         else:
-            self.porosity = porosity
+            self.porosity = p
 
     # use property setter to update phi and K when porosity is updated
 
     @property
     def porosity(self):
-        return self.porosity
+        return self._porosity
     
     @porosity.setter
     def porosity(self, val):
         if val < 0.48:
             raise ValueError('Porosity value needs to be higher than 1 for Hapke model to be valid')
         else:
-            self.porosity = val
-            self.phi = 1 - self.porosity
-            self.K = -np.log(1-1.209*self.phi**(2/3))/(1.209*self.phi**(2/3))
+            self._porosity = val
+            self._phi = 1 - self._porosity
+            self._K = -np.log(1-1.209*self._phi**(2/3))/(1.209*self._phi**(2/3))
 
     @property
     def phi(self):
-        return self.phi
+        return self._phi
     
     @property
     def K(self):
-        return self.K
+        return self._K
 
     def set_backscattering(self,B):
         self.B = B
