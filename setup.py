@@ -14,6 +14,7 @@ setup(name='frostie',
       install_requires=[
           'numpy',
           'matplotlib',
+          'jupyter',
           'dynesty',
       ],
       zip_safe=False)
