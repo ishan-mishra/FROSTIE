@@ -1,6 +1,9 @@
 Installation
 ============
 
+Download GitHub repository
+-----------------------------
+
 You can download `FROSTIE from GitHub <https://github.com/ishan-mishra/FROSTIE>`_
 or clone the repository:
 
@@ -12,12 +15,12 @@ or clone the repository:
 Linux conda environment setup
 -----------------------------
 
-FROSTIE currently supports Python versions up to ____. You can create a new 
-anaconda environment with, say, the latest version of Python 3.10 via:
+FROSTIE currently supports Python versions up to 3.11. You can create a new 
+anaconda environment with, say, the latest version of Python 3.11 via:
 
 .. code-block:: bash
 
-   conda create --name 𝗬𝗢𝗨𝗥_𝗘𝗡𝗩_𝗡𝗔𝗠𝗘_𝗛𝗘𝗥𝗘 python=3.10
+   conda create --name 𝗬𝗢𝗨𝗥_𝗘𝗡𝗩_𝗡𝗔𝗠𝗘_𝗛𝗘𝗥𝗘 python=3.11
 
 Once the basic Python packages are installed in this fresh environment, you
 can activate the environment where POSEIDON will dwell:
@@ -25,6 +28,9 @@ can activate the environment where POSEIDON will dwell:
 .. code-block:: bash
 
    conda activate 𝗬𝗢𝗨𝗥_𝗘𝗡𝗩_𝗡𝗔𝗠𝗘_𝗛𝗘𝗥𝗘
+
+Install using `pip`
+-----------------------------
 
 Then navigate into the 'FROSTIE' directory and install the package via:
 

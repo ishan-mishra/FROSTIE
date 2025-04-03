@@ -9,7 +9,7 @@ setup(name='frostie',
       author='Ishan Mishra',
       author_email='ishan.mishra@jpl.nasa.gov',
       packages=['frostie'],
-      include_package_data=True
+      include_package_data=True,
       license = 'MIT License'
       install_requires=[
           numpy,
