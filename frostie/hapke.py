@@ -30,16 +30,16 @@ class regolith:
 
     @property
     def i(self):
-        return self._i
+        return self.i
     
     @i.setter
     def i(self, val):
-        self._i = val
-        self._mu_0 = np.cos(np.deg2rad(self._i))
+        self.i = val
+        self.mu_0 = np.cos(np.deg2rad(self.i))
 
     @property
     def mu_0(self):
-        return self._mu_0
+        return self.mu_0
     
     @mu_0.setter
     def mu_0(self, val):
@@ -47,16 +47,16 @@ class regolith:
 
     @property
     def e(self):
-        return self._e
+        return self.e
     
     @e.setter
     def e(self, val):
-        self._e = val
-        self._mu = np.cos(np.deg2rad(self._e))
+        self.e = val
+        self._mu = np.cos(np.deg2rad(self.e))
 
     @property
     def mu(self):
-        return self._mu
+        return self.mu
     
     @mu.setter
     def mu(self, val):
@@ -72,24 +72,24 @@ class regolith:
 
     @property
     def porosity(self):
-        return self._porosity
+        return self.porosity
     
     @porosity.setter
     def porosity(self, val):
         if val < 0.48:
             raise ValueError('Porosity value needs to be higher than 1 for Hapke model to be valid')
         else:
-            self._porosity = val
-            self._phi = 1 - self._porosity
-            self._K = -np.log(1-1.209*self._phi**(2/3))/(1.209*self._phi**(2/3))
+            self.porosity = val
+            self.phi = 1 - self.porosity
+            self.K = -np.log(1-1.209*self.phi**(2/3))/(1.209*self.phi**(2/3))
 
     @property
     def phi(self):
-        return self._phi
+        return self.phi
     
     @property
     def K(self):
-        return self._K
+        return self.K
 
     def set_backscattering(self,B):
         self.B = B
