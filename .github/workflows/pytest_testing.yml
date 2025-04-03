@@ -1,0 +1,64 @@
+name: Pytest testing
+
+on:
+  push:
+    branches:    
+      - 'main'
+      - 'develop'
+  pull_request:
+    branches:
+      - 'main'
+      - 'develop'
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }} with Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11'] 
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Free disk space
+      run: |
+        sudo swapoff -a
+        sudo rm -f /swapfile
+        sudo apt clean
+        docker rmi $(docker image ls -aq)
+        df -h
+
+    - name: Set up Anaconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniconda-version: "latest"
+        channels: conda-forge, defaults
+        use-only-tar-bz2: true
+        auto-update-conda: true
+        auto-activate-base: true
+
+    - name: Create conda environment on Ubuntu
+      if: runner.os == 'Linux'
+      run: |
+        echo "begin: PATH=$PATH;" 
+        conda create --name test_install python=${{ matrix.python-version }} -y
+
+    - name: Create conda environment on MacOS
+      if: runner.os == 'macOS'
+      run: |
+        echo "begin: PATH=$PATH;" 
+        CONDA_SUBDIR=osx-64 conda create --name test_install python=${{ matrix.python-version }} -y
+
+    - name: Install FROSTIE
+      run: |
+        conda activate test_install || true
+        pip install -e .
+        
+    - name: Run tests
+      run: |
+        conda activate test_install || true
+        pytest -rA

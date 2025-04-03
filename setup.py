@@ -16,6 +16,7 @@ setup(name='frostie',
           'matplotlib',
           'jupyter',
           'dynesty',
+          'pytest',
       ],
       zip_safe=False)
 
