@@ -59,3 +59,5 @@ Questions and Support
 ---------------------
 
 Feel free to reach out to Ishan Mishra at ishan.mishra@jpl.nasa.gov or im356@cornell.edu. 
+
+Logo Design by Carly Snell.
