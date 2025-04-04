@@ -28,7 +28,7 @@ While FROSTIE has been only applied to data of Europa so far, with the right inp
 FROSTIE is available under the BSD 3-Clause License. If you use FROSTIE, 
 please cite `Mishra et al. (2022) <https://ui.adsabs.harvard.edu/abs/2021Icar..35714215M/abstract>`_. 
 
-Logo Design by Carly Snell.
+Logo design by Carly Snell.
 
 .. toctree::
    :maxdepth: 1
