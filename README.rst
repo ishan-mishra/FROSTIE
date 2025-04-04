@@ -21,7 +21,7 @@
 
 |
 
-**A Python package for analysis of reflectance spectroscopy data of airless planetary surfaces**
+**A Python Package for Analysis of Reflectance Spectroscopy of Airless Planetary Surfaces**
 
 FROSTIE, written in python, enables quick and easy modelling of reflectance spectra of planetary surfaces, based on the popular Hapke model. A Bayesian inference wrapper provides efficient model-fitting capabilities. For installation instructions, tutorials, and detailed documentation, check out FROSTIE's documentation below.
 
