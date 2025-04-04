@@ -20,7 +20,7 @@ bibliography: paper.bib
 # Summary
 Reflectance spectroscopy is one of the most powerful remote sensing tools in planetary science. By measuring how sunlight reflects off an airless planetary surface across different wavelengths, scientists can identify surface compositions, constrain physical properties such as grain size and porosity, and investigate processes like radiation weathering. However, the extraction of quantitative information from reflectance spectra is complicated by the presence of strong degeneracies between these parameters \autoref{fig:reflectance_schematic}.
 
-![A schematic diagram showing the key parameters affecting reflectance from a planetary surface. \label{fig:reflectance_schematic}](figures/reflectance_schematic.jpeg){#fig:reflectance_schematic width=75%}
+![A schematic diagram showing the key parameters affecting reflectance from a planetary surface. \label{fig:reflectance_schematic}](figures/reflectance_schematic.jpeg){width=75%}
 
 
 `FROSTIE` is an open-source Python package designed to address this challenge. It combines analytical radiative transfer modeling with modern Bayesian inference techniques, enabling robust and reproducible analysis of reflectance spectra. Specifically, `FROSTIE` provides tools to (1) forward model the reflectance spectrum of planetary regoliths using Hapke theory, and (2) perform statistical retrievals to infer best-fit parameters and their uncertainties. This approach is particularly useful in dealing with picking out weak signals in spectroscopic data, such as of trace molecules like organics.
@@ -41,7 +41,7 @@ While legacy tools like [`Tetracorder`](https://github.com/PSI-edu/spectroscopy-
 
 At its core, `FROSTIE` simulates reflectance spectra based on user-specified surface parameters (e.g., abundances, grain sizes, porosity) and a set of optical constants. The model spectrum is convolved with instrumental response functions, allowing for direct comparison to observed data. The retrieval module employs a nested sampling algorithm to explore parameter space, construct posterior distributions, and compute the Bayesian evidence. A schematic of the architecture of `FROSTIE` is presented in \autoref{fig:frostie_schematic}.
 
-![The architecture of `FROSTIE`. \label{fig:frostie_schematic}](figures/frostie_schematic.png){#fig:reflectance_schematic width=75%}
+![The architecture of `FROSTIE`. \label{fig:frostie_schematic}](figures/frostie_schematic.png){width=75%}
 
 Bayesian evidence is a particularly powerful feature that enables users to test the necessity of including specific components in a spectral model [@macdonald_metal-rich_2019; @mishra_bayesian_2021_alt]. For instance, if adding a candidate species improves the Bayesian evidence, this can be interpreted as quantitative support for its detection. This statistical rigor surpasses traditional methods that rely on reduced chi-squared or arbitrary thresholds. 
 
