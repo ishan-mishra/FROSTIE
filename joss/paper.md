@@ -41,7 +41,7 @@ While legacy tools like [`Tetracorder`](https://github.com/PSI-edu/spectroscopy-
 
 At its core, `FROSTIE` simulates reflectance spectra based on user-specified surface parameters (e.g., abundances, grain sizes, porosity) and a set of optical constants. The model spectrum is convolved with instrumental response functions, allowing for direct comparison to observed data. The retrieval module employs a nested sampling algorithm to explore parameter space [@speagle_dynesty_2020], construct posterior distributions, and compute the Bayesian evidence. A schematic of the architecture of `FROSTIE` is presented in \autoref{fig:frostie_schematic}.
 
-![The architecture of `FROSTIE`. This schematic inspired by from POSEIDON [@macdonald_hd_2017; @macdonald_poseidon_2023] \label{fig:frostie_schematic}](figures/frostie_schematic.png){width=75%}
+![The architecture of `FROSTIE`. This schematic is inspired by from POSEIDON [@macdonald_hd_2017; @macdonald_poseidon_2023] \label{fig:frostie_schematic}](figures/frostie_schematic.png){width=75%}
 
 Bayesian evidence is a particularly powerful feature that enables users to test the necessity of including specific components in a spectral model [@macdonald_hd_2017; @mishra_bayesian_2021_alt]. For instance, if adding a candidate species improves the Bayesian evidence, this can be interpreted as quantitative support for its detection. This statistical rigor surpasses traditional methods that rely on reduced chi-squared or arbitrary thresholds. 
 
