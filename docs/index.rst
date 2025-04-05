@@ -42,7 +42,7 @@ Logo design by Carly Snell.
    
    content/notebooks/one_component_model
    content/notebooks/multi_component_model
-   content/notebooks/interactive_model
+..   content/notebooks/interactive_model
    
 .. toctree::
    :maxdepth: 2
