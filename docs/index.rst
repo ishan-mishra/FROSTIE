@@ -53,3 +53,10 @@ Logo design by Carly Snell.
    autoapi/index
 
 
+License:
+------------------------------------
+
+Copyright 2025 Ishan Mishra
+
+FROSTIE is available under the MIT License.
+
