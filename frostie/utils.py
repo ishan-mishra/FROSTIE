@@ -156,3 +156,19 @@ def find_nearest(array,value):
 
     idx = np.argwhere(np.abs(array-value) == np.abs(array-value).min())[0][0]
     return idx
+
+
+def instrument_convolution(wav, spec, instrument="NIMS"):
+    """Function to convolve a given spectrum with an instrument convolution function
+
+       Currently supports: NIMS
+       Future support: MISE
+    """
+
+    # if instrument is not NIMS, print an error
+
+
+    # define NIMS convolution function
+
+
+    # convolve with input arrays
