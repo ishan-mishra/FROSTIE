@@ -165,6 +165,8 @@ def instrument_convolution(wav, spec, instrument="NIMS"):
        Future support: MISE
     """
 
+    return wav, spec
+
     # if instrument is not NIMS, print an error
 
 
