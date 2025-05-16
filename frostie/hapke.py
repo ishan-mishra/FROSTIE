@@ -77,7 +77,7 @@ class regolith:
     @porosity.setter
     def porosity(self, val):
         if val < 0.48:
-            raise ValueError('Porosity value needs to be higher than 1 for Hapke model to be valid')
+            raise ValueError('Porosity value needs to be higher than 0.48 for Hapke model to be valid')
         else:
             self._porosity = val
             self._phi = 1 - self._porosity
