@@ -1,21 +1,23 @@
 # module for Bayesian inference of data
 
+from multiprocessing import Pool
+import multiprocessing
+import functools
+import pickle
+import os
+import time
+
 import numpy as np
 import spectres
 from .hapke import regolith
-from .utils import load_co2_op_cons, load_water_op_cons, spectra_list_match
+from .utils import load_co2_op_cons, load_water_op_cons, Z_to_sigma
 from .plotting import plot_spectrum_with_uncertainty, plot_posteriors
 
 from dynesty import NestedSampler
 from dynesty import utils as dyfunc
-import time
-from multiprocessing import Pool
-import functools
-import pickle
-import os
-import math
 
-def load_simulated_data(snr=50, del_wav=0.01):
+
+def load_simulated_data(snr=50, del_wav=0.01, f_h2o=0.5):
     """
     Generate and return a simulated noisy spectrum of a water & CO2 ice mixture,
     at a specified signal-to-noise ratio (SNR) and spectral resolution.
@@ -46,13 +48,13 @@ def load_simulated_data(snr=50, del_wav=0.01):
     wav_water, n_water, k_water = load_water_op_cons()
     wav_co2, n_co2, k_co2 = load_co2_op_cons()
 
-    f = 0.5  # equal fraction by number
+    f_co2 = 1.0 - f_h2o
 
     water = {'name': 'water', 'n': n_water, 'k': k_water, 'wav': wav_water,
-             'D': 100, 'p_type': 'HG2', 'f': f}
+             'D': 100, 'p_type': 'HG2', 'f': f_h2o}
 
     co2 = {'name': 'carbon dioxide', 'n': n_co2, 'k': k_co2, 'wav': wav_co2,
-           'D': 100, 'p_type': 'HG2', 'f': f}
+           'D': 100, 'p_type': 'HG2', 'f': f_co2}
 
     example_two_regolith.add_components([water, co2], matched_axes=False)
     example_two_regolith.set_mixing_mode('intimate')
@@ -316,31 +318,12 @@ class solo_retrieval:
 
         return tuple(transformed)
 
-    def run(self, save_dir='.', nlive=512, dlogz=0.1, sample='auto', bound='multi',
-            use_multicore=False, nproc=4):
+    def run(self, save_dir='.', nlive=512, dlogz=0.1,
+            sample='rwalk', bound='multi', bootstrap=0,
+            use_multicore=False, nproc=None):
         """
         Run nested sampling and save results.
-
-        Parameters
-        ----------
-        save_dir : str
-            Directory to save results.
-        nlive : int
-            Number of live points.
-        dlogz : float
-            Stopping criterion for nested sampling.
-        sample : str
-            Sampling scheme (e.g., 'auto', 'rwalk').
-        bound : str
-            Bounding mode (e.g., 'multi').
-        use_multicore : bool
-            If True, parallelize using multiprocessing.
-        nproc : int
-            Number of processes to use if multiprocessing is enabled.
         """
-        import time
-        from multiprocessing import Pool
-        from dynesty import utils as dyfunc
 
         if not self.initialized:
             raise RuntimeError("Call .initialize() before .run()")
@@ -348,20 +331,22 @@ class solo_retrieval:
         wav_data, data, noise = self.data_matched
         norm_log = -0.5 * np.sum(np.log(2 * np.pi * noise ** 2))
         ndims = len(self.free_params)
-
         loglike = functools.partial(self._loglike, norm_log=norm_log)
 
-        # Set up sampler (optionally with multiprocessing)
+        if use_multicore and nproc is None:
+            nproc = max(1, multiprocessing.cpu_count() - 1)
+
         if use_multicore:
+            print(f"[INFO] solo_retrieval: using {nproc} cores for parallel processing.")
             pool = Pool(processes=nproc)
             sampler = NestedSampler(loglike, self._prior_transform, ndims,
-                                    bound=bound, sample=sample, nlive=nlive,
-                                    pool=pool, queue_size=nproc)
+                                    bound=bound, sample=sample, bootstrap=bootstrap,
+                                    nlive=nlive, pool=pool, queue_size=nproc)
         else:
             sampler = NestedSampler(loglike, self._prior_transform, ndims,
-                                    bound=bound, sample=sample, nlive=nlive)
+                                    bound=bound, sample=sample, bootstrap=bootstrap,
+                                    nlive=nlive)
 
-        # Time the run
         t0 = time.time()
         sampler.run_nested(dlogz=dlogz, print_progress=True)
         t1 = time.time()
@@ -372,16 +357,12 @@ class solo_retrieval:
         self.param_names = [p[0] for p in self.free_params]
 
         os.makedirs(save_dir, exist_ok=True)
-
         with open(os.path.join(save_dir, 'results.pic'), 'wb') as f:
             pickle.dump(self.results, f)
-
         with open(os.path.join(save_dir, 'samples.pic'), 'wb') as f:
             pickle.dump(self.samples, f)
 
-        # Report time taken
-        elapsed = t1 - t0
-        hours, rem = divmod(elapsed, 3600)
+        hours, rem = divmod(t1 - t0, 3600)
         minutes, seconds = divmod(rem, 60)
         print(f"Time taken for retrieval: {int(hours)}h {int(minutes)}m {int(seconds)}s")
 
@@ -461,4 +442,201 @@ class solo_retrieval:
                     f"=> f = {f_median:.3f} (+{f_hi - f_median:.3f} / -{f_median - f_lo:.3f})")
             else:
                 print(f"{name}: {median:.3f} (+{hi - median:.3f} / -{median - lo:.3f})")
+
+
+class nested_retrieval:
+    def __init__(self):
+        self.results_dict = {}
+        self.model_logZs = {}
+        self.model_names = []
+        self.best_model_name = None
+
+    def initialize(self, fixed_params, free_params, components, data, instrument_response=None):
+        self.fixed_params = fixed_params
+        self.free_params = free_params
+        self.components = components
+        self.data = data
+        self.instrument_response = instrument_response
+
+    def _build_model_case(self, include_components):
+        """
+        Dynamically build model-specific free parameter list.
+        """
+        comp_subset = {k: v for k, v in self.components.items() if k in include_components}
+        n_species = len(include_components)
+
+        free_subset = []
+
+        for param, bounds in self.free_params:
+            if param == "log10f":
+                if n_species == 1:
+                    continue  # skip abundance param in one-species case
+                elif n_species == 2:
+                    # give log10f to the first species only
+                    species = include_components[0]
+                    free_subset.append([f"log10f_{species}", bounds])
+                elif n_species > 2:
+                    for species in include_components[:-1]:  # leave 1 dependent
+                        free_subset.append([f"log10f_{species}", bounds])
+            elif param == "D":
+                for species in include_components:
+                    free_subset.append([f"D_{species}", bounds])
+            else:
+                free_subset.append([param, bounds])  # global parameter like 'p'
+
+        return comp_subset, free_subset
+    
+    def run_all_models(self, use_multicore=False, nproc=None,
+                    save_dir='nested_results', nlive=512, dlogz=0.1,
+                    sample='rwalk', bound='multi', bootstrap=0):
+
+        if use_multicore and nproc is None:
+            import multiprocessing
+            nproc = max(1, multiprocessing.cpu_count() - 1)
+
+        if use_multicore:
+            print(f"[INFO] nested_retrieval: using {nproc} cores for parallel processing.")
+
+        os.makedirs(save_dir, exist_ok=True)
+
+        all_species = list(self.components.keys())
+        self.model_names = ['_'.join(all_species)]
+        model_list = [all_species] + [[s for s in all_species if s != exclude] for exclude in all_species]
+
+        for model_species in model_list:
+            model_name = '_'.join(model_species)
+            print(f"\n>>> Running retrieval for model: {model_name}")
+
+            comp_subset, free_subset = self._build_model_case(model_species)
+
+            sr = solo_retrieval()
+            sr.initialize(
+                fixed_params=self.fixed_params,
+                free_params=free_subset,
+                components=comp_subset,
+                data=self.data,
+                instrument_response=self.instrument_response
+            )
+
+            model_dir = os.path.join(save_dir, model_name)
+            sr.run(save_dir=model_dir,
+                use_multicore=use_multicore,
+                nproc=nproc,
+                nlive=nlive,
+                dlogz=dlogz,
+                sample=sample,
+                bound=bound,
+                bootstrap=bootstrap)
+
+            self.results_dict[model_name] = sr
+            self.model_logZs[model_name] = sr.results.logz[-1]
+
+        self.best_model_name = max(self.model_logZs, key=self.model_logZs.get)
+
+
+    def compare_evidences(self, max_display_sigma=10.0, max_display_logz=100.0):
+        print("\n=== Bayesian Evidence Comparison ===")
+        full_model = self.model_names[0]
+        full_logZ = self.model_logZs[full_model]
+
+        for model_name, logZ in self.model_logZs.items():
+            if model_name == full_model:
+                continue
+            B, sigma = Z_to_sigma(full_logZ, logZ)
+            delta_logZ = full_logZ - logZ
+
+            # Clean up display
+            sigma_disp = f">{max_display_sigma:.1f}" if sigma > max_display_sigma else f"{sigma:.2f}"
+            deltaZ_disp = f">{max_display_logz:.2f}" if delta_logZ > max_display_logz else f"{delta_logZ:.2f}"
+
+            excluded = set(full_model.split('_')) - set(model_name.split('_'))
+            species = excluded.pop() if excluded else 'UNKNOWN'
+            print(f"Evidence for: {species} → {sigma_disp}σ (ΔlogZ = {deltaZ_disp})")
+
+        print(f"\nBest model: {self.best_model_name} (logZ = {self.model_logZs[self.best_model_name]:.2f})")
+
+
+    def plot_best_model_solutions(self, plot_residuals=True, plot_uncertainty=False):
+        best = self.results_dict[self.best_model_name]
+        wav_data, reflectance, uncertainty = best.data_matched
+
+        def model_fn(theta_sample):
+            _, model = best._make_model(theta_sample)
+            return wav_data, model
+
+        plot_spectrum_with_uncertainty(
+            wavelengths=wav_data,
+            reflectance=reflectance,
+            uncertainty=uncertainty,
+            model_function=model_fn,
+            samples=best.results,
+            title=f"Best Model: {self.best_model_name}",
+            plot_residuals=plot_residuals,
+            plot_uncertainty=plot_uncertainty
+        )
+
+    def plot_best_model_posteriors(self, n_sigma=2, truths=None):
+        best = self.results_dict[self.best_model_name]
+        plot_posteriors(best.results, param_names=best.param_names,
+                        transform_log10f=True, n_sigma=n_sigma, truths=truths)
+
+    def print_best_model_summary(self, n_sigma=2):
+        best = self.results_dict[self.best_model_name]
+        best.print_retrieval_summary(n_sigma=n_sigma)
+
+    def plot_model(self, name, plot_residuals=True, plot_uncertainty=False):
+        """
+        Plot solutions for any named model in the comparison set.
+
+        Parameters
+        ----------
+        name : str
+            Model name (e.g. 'h2o', 'co2', 'h2o_co2').
+        plot_residuals : bool
+            Whether to show residual panel.
+        plot_uncertainty : bool
+            Whether to shade 1σ / 2σ confidence bounds.
+        """
+        if name not in self.results_dict:
+            raise ValueError(f"Model '{name}' not found. Available models: {list(self.results_dict.keys())}")
+
+        sr = self.results_dict[name]
+        wav_data, reflectance, uncertainty = sr.data_matched
+
+        def model_fn(theta_sample):
+            _, model = sr._make_model(theta_sample)
+            return wav_data, model
+
+        plot_spectrum_with_uncertainty(
+            wavelengths=wav_data,
+            reflectance=reflectance,
+            uncertainty=uncertainty,
+            model_function=model_fn,
+            samples=sr.results,
+            title=f"Model: {name}",
+            plot_residuals=plot_residuals,
+            plot_uncertainty=plot_uncertainty
+        )
+
+    def plot_model_posteriors(self, name, n_sigma=2, truths=None):
+        """
+        Plot posterior distributions for any named model.
+
+        Parameters
+        ----------
+        name : str
+            Model name to plot.
+        n_sigma : float
+            Confidence interval width.
+        truths : list or None
+            True values to overlay.
+        """
+        if name not in self.results_dict:
+            raise ValueError(f"Model '{name}' not found.")
+        sr = self.results_dict[name]
+        plot_posteriors(sr.results, param_names=sr.param_names,
+                        transform_log10f=True, n_sigma=n_sigma, truths=truths)
+
+
+
 

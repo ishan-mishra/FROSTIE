@@ -3,6 +3,8 @@
 import numpy as np
 import os
 import warnings
+from scipy.special import erfcinv
+from scipy.special import lambertw as W
 
 def load_water_op_cons(wav_low=None, wav_high=None):
     """Load water ice optical constants included in FROSTIE"""
@@ -174,3 +176,33 @@ def instrument_convolution(wav, spec, instrument="NIMS"):
 
 
     # convolve with input arrays
+
+
+
+def Z_to_sigma(ln_Z1, ln_Z2):
+    """
+    Convert log-evidences of two models to a sigma confidence level.
+
+    Parameters
+    ----------
+    ln_Z1 : float
+        log of Bayesian evidence of model 1 (e.g. full model).
+    ln_Z2 : float
+        log of Bayesian evidence of model 2 (e.g. model missing a species).
+
+    Returns
+    -------
+    B : float
+        Bayes factor of model 1 to model 2
+    sigma : float
+        Sigma evidence of model 1 over model 2
+    """
+    B = np.exp(ln_Z1 - ln_Z2)
+
+    if B < 1.0:
+        warnings.warn('Bayes factor is less than 1; sigma-significance is invalid')
+
+    p = np.real(np.exp(W((-1.0 / (B * np.exp(1))), -1)))
+    sigma = np.sqrt(2) * erfcinv(p)
+
+    return B, sigma
