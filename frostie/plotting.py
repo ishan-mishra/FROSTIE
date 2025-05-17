@@ -66,10 +66,10 @@ def plot_spectrum_with_uncertainty(wavelengths, reflectance, uncertainty,
     ax0 = axes[0] if plot_residuals else axes
 
     if plot_uncertainty:
-        ax0.fill_between(wavelengths, low_2sig, high_2sig, alpha=0.2, color="#e41a1c", label=r"$2\sigma$")
-        ax0.fill_between(wavelengths, low_1sig, high_1sig, alpha=0.4, color="#e41a1c", label=r"$1\sigma$")
-    ax0.errorbar(wavelengths, reflectance, yerr=uncertainty, fmt='o', color="#377eb8", markersize=3, label="Data")
-    ax0.plot(wavelengths, model_median, color="#e41a1c", label="Median Model")
+        ax0.fill_between(wavelengths, low_2sig, high_2sig, alpha=0.2, color="#d62728", label=r"$2\sigma$")
+        ax0.fill_between(wavelengths, low_1sig, high_1sig, alpha=0.4, color="#d62728", label=r"$1\sigma$")
+    ax0.errorbar(wavelengths, reflectance, yerr=uncertainty, fmt='o', color="#1f77b4", markersize=3, label="Data")
+    ax0.plot(wavelengths, model_median, color="#d62728", label="Median Model")
     ax0.set_ylabel("Reflectance", fontsize=14)
     ax0.legend(loc="upper center", ncol=3, fontsize=12)
     ax0.tick_params(labelsize=12)
@@ -142,7 +142,8 @@ def plot_posteriors(results, param_names=None, transform_log10f=True, n_sigma=2,
         title_fmt='.3f',
         quantiles=quantiles,
         truths=truths,
-        color='royalblue'
+        truth_color='#d62728',
+        color='#1f77b4'
     )
     plt.tight_layout()
     plt.show()

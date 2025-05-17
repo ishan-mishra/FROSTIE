@@ -36,6 +36,7 @@ While FROSTIE has been only applied to data of Europa so far, with the right inp
    
    content/notebooks/one_component_model
    content/notebooks/multi_component_model
+   content/notebooks/retrieval
 ..   content/notebooks/interactive_model
    
 .. toctree::
