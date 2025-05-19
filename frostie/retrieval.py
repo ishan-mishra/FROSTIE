@@ -6,6 +6,8 @@ import functools
 import pickle
 import os
 import time
+import warnings
+import math
 
 import numpy as np
 import spectres
@@ -40,6 +42,10 @@ def load_simulated_data(snr=50, del_wav=0.01, f_h2o=0.5):
             Simulated reflectance data with Gaussian noise
         - 'uncertainty' : ndarray
             1-sigma uncertainty array corresponding to SNR
+        - 'model_true' : ndarray
+            Noiseless model reflectance values
+        - 'wav_model' : ndarray
+            Wavelengths corresponding to model_true
     """
 
     # 1. Create two-component Hapke model (H2O + CO2)
@@ -322,8 +328,28 @@ class solo_retrieval:
             sample='rwalk', bound='multi', bootstrap=0,
             use_multicore=False, nproc=None):
         """
-        Run nested sampling and save results.
+        Run nested sampling and save the results to disk.
+
+        Parameters
+        ----------
+        save_dir : str, optional
+            Directory to store output samples and results.
+        nlive : int, optional
+            Number of live points for the nested sampler.
+        dlogz : float, optional
+            Convergence threshold for dynesty.
+        sample : str, optional
+            Sampling method for dynesty ('rwalk', 'auto', etc.).
+        bound : str, optional
+            Bounding method for dynesty ('multi', etc.).
+        bootstrap : int, optional
+            Number of bootstrap iterations for ellipsoid bounding.
+        use_multicore : bool, optional
+            Whether to run dynesty in parallel.
+        nproc : int or None, optional
+            Number of cores to use if multiprocessing is enabled.
         """
+
 
         if not self.initialized:
             raise RuntimeError("Call .initialize() before .run()")
@@ -401,7 +427,16 @@ class solo_retrieval:
         )
 
     def plot_posteriors(self, truths=None, n_sigma=2):
-        
+        """
+        Plot posterior distributions of the retrieved parameters.
+
+        Parameters
+        ----------
+        truths : list or None, optional
+            True values to overlay on the posterior plots (e.g., for simulated data).
+        n_sigma : int or float, optional
+            Width of the confidence interval to annotate (default is 1σ).
+        """
         plot_posteriors(
             results=self.results,
             param_names=self.param_names,
@@ -413,11 +448,15 @@ class solo_retrieval:
 
     def print_retrieval_summary(self, n_sigma=2):
         """
-        Print summary of median and uncertainty for all parameters,
-        using equal-weighted posterior resampling.
+        Print median values and confidence intervals for all retrieved parameters.
+
+        Uses equal-weighted posterior resampling to compute summary statistics.
+
+        Parameters
+        ----------
+        n_sigma : float, optional
+            Width of confidence interval to display (default is 2σ).
         """
-        import math
-        from dynesty import utils as dyfunc
 
         lower_q = 0.5 - 0.5 * math.erf(n_sigma / np.sqrt(2))
         upper_q = 0.5 + 0.5 * math.erf(n_sigma / np.sqrt(2))
@@ -452,6 +491,23 @@ class nested_retrieval:
         self.best_model_name = None
 
     def initialize(self, fixed_params, free_params, components, data, instrument_response=None):
+        """
+        Initialize a nested_retrieval object with model and data settings.
+
+        Parameters
+        ----------
+        fixed_params : dict
+            Dictionary of fixed model parameters (e.g., geometry, phase function type).
+        free_params : list of [str, tuple]
+            List of free parameters and their bounds.
+        components : dict
+            Dictionary of optical constants keyed by component name.
+        data : list of ndarray
+            List containing wavelength, reflectance, and uncertainty arrays.
+        instrument_response : ndarray, optional
+            Optional instrument convolution kernel (default is None).
+        """
+
         self.fixed_params = fixed_params
         self.free_params = free_params
         self.components = components
@@ -489,7 +545,28 @@ class nested_retrieval:
     def run_all_models(self, use_multicore=False, nproc=None,
                     save_dir='nested_results', nlive=512, dlogz=0.1,
                     sample='rwalk', bound='multi', bootstrap=0):
+        """
+        Run N+1 retrievals (where N is the number of components in the model) to evaluate the evidence for each model combination.
 
+        Parameters
+        ----------
+        use_multicore : bool, optional
+            Whether to use multiprocessing (default is False).
+        nproc : int or None, optional
+            Number of processor cores to use if multiprocessing is enabled.
+        save_dir : str, optional
+            Directory to store samples and results.
+        nlive : int, optional
+            Number of live points for nested sampling.
+        dlogz : float, optional
+            Convergence criterion for nested sampling.
+        sample : str, optional
+            Sampling method for dynesty.
+        bound : str, optional
+            Bound-setting method for dynesty.
+        bootstrap : int, optional
+            Number of bootstrap iterations for bounding ellipsoids.
+        """
         if use_multicore and nproc is None:
             import multiprocessing
             nproc = max(1, multiprocessing.cpu_count() - 1)
@@ -535,6 +612,17 @@ class nested_retrieval:
 
 
     def compare_evidences(self, max_display_sigma=10.0, max_display_logz=100.0):
+        """
+        Compare log-evidences for all retrieval models and print sigma-level support.
+
+        Parameters
+        ----------
+        max_display_sigma : float, optional
+            Maximum sigma value to display in printed output.
+        max_display_logz : float, optional
+            Maximum ΔlogZ value to display in printed output.
+        """
+            
         print("\n=== Bayesian Evidence Comparison ===")
         full_model = self.model_names[0]
         full_logZ = self.model_logZs[full_model]
@@ -557,6 +645,17 @@ class nested_retrieval:
 
 
     def plot_best_model_solutions(self, plot_residuals=True, plot_uncertainty=False):
+        """
+        Plot the median spectrum and uncertainty region for the best-fit model.
+
+        Parameters
+        ----------
+        plot_residuals : bool, optional
+            Whether to show a residual panel below the main plot.
+        plot_uncertainty : bool, optional
+            Whether to shade the 1σ and 2σ confidence intervals.
+        """
+
         best = self.results_dict[self.best_model_name]
         wav_data, reflectance, uncertainty = best.data_matched
 
@@ -576,11 +675,29 @@ class nested_retrieval:
         )
 
     def plot_best_model_posteriors(self, n_sigma=2, truths=None):
+        """
+        Plot posterior distributions for the best model's parameters.
+
+        Parameters
+        ----------
+        n_sigma : int or float, optional
+            Width of the confidence interval to annotate.
+        truths : list or None, optional
+            Ground truth values to mark on the plot.
+        """
         best = self.results_dict[self.best_model_name]
         plot_posteriors(best.results, param_names=best.param_names,
                         transform_log10f=True, n_sigma=n_sigma, truths=truths)
 
     def print_best_model_summary(self, n_sigma=2):
+        """
+        Print the median and uncertainty bounds for each parameter in the best-fit model.
+
+        Parameters
+        ----------
+        n_sigma : int, optional
+            Confidence interval width (default is 2σ).
+        """
         best = self.results_dict[self.best_model_name]
         best.print_retrieval_summary(n_sigma=n_sigma)
 
@@ -595,7 +712,7 @@ class nested_retrieval:
         plot_residuals : bool
             Whether to show residual panel.
         plot_uncertainty : bool
-            Whether to shade 1σ / 2σ confidence bounds.
+            Whether to shade 1σ/2σ confidence bounds.
         """
         if name not in self.results_dict:
             raise ValueError(f"Model '{name}' not found. Available models: {list(self.results_dict.keys())}")
