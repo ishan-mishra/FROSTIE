@@ -18,6 +18,7 @@ setup(name='frostie',
           'dynesty',
           'scipy',
           'pytest',
+          'spectres'
       ],
       zip_safe=False)
 
