@@ -43,9 +43,10 @@ While FROSTIE has been only applied to data of Europa so far, with the right inp
    :maxdepth: 2
    :caption: Code Documentation:
    
+   autoapi/index
    content/citations
    content/contributing
-   autoapi/index
+   
 
 
 License:
