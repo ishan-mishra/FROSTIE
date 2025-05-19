@@ -16,7 +16,9 @@ setup(name='frostie',
           'matplotlib',
           'jupyter',
           'dynesty',
+          'scipy',
           'pytest',
+          'spectres'
       ],
       zip_safe=False)
 

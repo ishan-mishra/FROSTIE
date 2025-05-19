@@ -13,6 +13,18 @@ class regolith:
         self.constant_D = True
 
     def add_components(self, component_list, matched_axes=False):
+        """
+        Add a list of components (e.g., ice species) to the regolith.
+
+        Parameters
+        ----------
+        comp_list : list of dict
+            Each dictionary should contain the keys 'name', 'wav', 'n', 'k',
+            'D', 'f', and optionally 'p_type'.
+        matched_axes : bool, optional
+            If True, assumes all components share a common wavelength axis.
+            If False, wavelengths are interpolated as needed.
+        """
         for component in component_list:
             self.components.append(component)
         
@@ -20,6 +32,18 @@ class regolith:
             self.matched_axes = matched_axes
 
     def set_obs_geometry(self, i, e, g):
+        """
+        Set the observation geometry of the model.
+
+        Parameters
+        ----------
+        i : float
+            Incidence angle in degrees.
+        e : float
+            Emergence angle in degrees.
+        g : float
+            Phase angle in degrees.
+        """
         self.i = i
         self.mu_0 = np.cos(np.deg2rad(self.i))
         self.e = e
@@ -30,6 +54,7 @@ class regolith:
 
     @property
     def i(self):
+        """Incidence angle in degrees."""
         return self._i
     
     @i.setter
@@ -39,6 +64,7 @@ class regolith:
 
     @property
     def mu_0(self):
+        """Cosine of the incidence angle."""
         return self._mu_0
     
     @mu_0.setter
@@ -47,6 +73,7 @@ class regolith:
 
     @property
     def e(self):
+        """Emergence angle in degrees."""
         return self._e
     
     @e.setter
@@ -56,6 +83,7 @@ class regolith:
 
     @property
     def mu(self):
+        """Cosine of the emergence angle."""
         return self._mu
     
     @mu.setter
@@ -72,12 +100,20 @@ class regolith:
 
     @property
     def porosity(self):
+        """
+        Set the porosity of the regolith.
+
+        Parameters
+        ----------
+        p : float
+            Porosity value between 0 and 1.
+        """
         return self._porosity
     
     @porosity.setter
     def porosity(self, val):
         if val < 0.48:
-            raise ValueError('Porosity value needs to be higher than 1 for Hapke model to be valid')
+            raise ValueError('Porosity value needs to be higher than 0.48 for Hapke model to be valid')
         else:
             self._porosity = val
             self._phi = 1 - self._porosity
@@ -85,19 +121,45 @@ class regolith:
 
     @property
     def phi(self):
+        """Packing angle phi derived from porosity."""
         return self._phi
     
     @property
     def K(self):
+        """Compaction factor K computed from phi (packing angle)."""
         return self._K
 
     def set_backscattering(self,B):
+        """
+        Set the backscattering amplitude in the Hapke model.
+
+        Parameters
+        ----------
+        B : float
+            Backscattering coefficient (typically between 0 and 1).
+        """
         self.B = B
 
     def set_s(self,s):
+        """
+        Set the internal scattering coefficient.
+
+        Parameters
+        ----------
+        s : float
+            Internal scattering coefficient (in cm⁻¹).
+        """
         self.s = s
 
     def set_mixing_mode(self, mixing_mode):
+        """
+        Set the type of mixing to use for the regolith.
+
+        Parameters
+        ----------
+        mode : str
+            Either 'intimate' or 'linear'.
+        """
         if mixing_mode == 'intimate' or mixing_mode == 'linear':
             self.mixing_mode = mixing_mode
         else:
@@ -125,6 +187,13 @@ class regolith:
         return get_r(self.w,self.mu,self.mu_0,self.B,self.p,self.K)
 
     def calculate_reflectance(self, constant_D=True):
+        """
+        Compute the reflectance spectrum of the regolith using Hapke theory.
+
+        This method combines all current settings (components, geometry, porosity,
+        mixing mode, etc.) to produce the final modeled reflectance.
+        """
+
         if len(self.components) == 0:
             raise ValueError('The regolith is empty! Add components to it.')
         elif len(self.components) == 1:

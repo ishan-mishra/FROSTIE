@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'FROSTIE'
-copyright = '2023, Ishan Mishra'
+copyright = '2025, Ishan Mishra'
 author = 'Ishan Mishra'
 root_doc = 'index'
 
@@ -74,12 +74,6 @@ html_sidebars = {
 html_static_path = ['_static']
 
 # provide an option to download the notebooks
-'''
-nbsphinx_prolog = """
-{% set docname = env.doc2path(env.docname, base=None) %}
-.. note::  `Download full notebook here <https://github.com/MartianColonist/POSEIDON_public/tree/main/docs/{{ docname }}>`_
-"""
-'''
 
 nbsphinx_prolog = """
 {% set docname = env.doc2path(env.docname, base=None) %}

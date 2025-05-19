@@ -3,9 +3,22 @@
 import numpy as np
 import os
 import warnings
+from scipy.special import erfcinv
+from scipy.special import lambertw as W
 
 def load_water_op_cons(wav_low=None, wav_high=None):
-    """Load water ice optical constants included in FROSTIE"""
+    """
+    Load water ice optical constants included in FROSTIE.
+
+    Returns
+    -------
+    wav : ndarray
+        Wavelength array in microns.
+    n : ndarray
+        Real part of the refractive index.
+    k : ndarray
+        Imaginary part of the refractive index.
+    """
 
     filename = os.path.abspath(os.path.join(os.path.dirname(__file__),'data',
         'h2o.dat'))
@@ -40,7 +53,17 @@ def load_water_op_cons(wav_low=None, wav_high=None):
 
 
 def load_co2_op_cons(wav_low=None, wav_high=None):
-    """Load carbon dioxide ice optical constants included in FROSTIE"""
+    """Load carbon dioxide ice optical constants included in FROSTIE.
+
+    Returns
+    -------
+    wav : ndarray
+        Wavelength array in microns.
+    n : ndarray
+        Real part of the refractive index.
+    k : ndarray
+        Imaginary part of the refractive index.
+    """
 
     filename = os.path.abspath(os.path.join(os.path.dirname(__file__),'data',
         'co2.dat'))
@@ -75,26 +98,26 @@ def load_co2_op_cons(wav_low=None, wav_high=None):
 
 
 def spectra_list_match(data_list,wav_list):
-    
-    '''
-    Modifies the input spectra so that their wavelength axes are the same. The common wavelength
-    axis is the wavelength array from wav_list with the lowest resolution.
- 
+    """
+    Resample all input spectra to a common wavelength axis.
+
+    The common axis is chosen as the lowest-resolution wavelength array in the list.
+
     Parameters
     ----------
-    data_list: list of 1D numpy arrays
-        list of data arrays
-    wav_list: list of 1D numpy arrays
-        list of wavelength arrays
+    data_list : list of ndarray
+        List of 1D arrays representing spectral data to be resampled.
+    wav_list : list of ndarray
+        Corresponding list of 1D wavelength arrays.
 
     Returns
     -------
+    data_matched_list : list of ndarray
+        Spectra resampled to the common wavelength grid.
+    wav_common : ndarray
+        Common wavelength axis used for resampling.
+    """
 
-    data_matched_list: list of 1D numpy arrays
-        list of modified data arrays
-    wav_common: 1D numpy array
-        common wavelength axis
-    '''
     
     min_res_list = []
     
@@ -139,7 +162,19 @@ def spectra_list_match(data_list,wav_list):
 
 
 def wav_bins(wav):
-    """Gives the wavelength bin array for a given wavelength array"""
+    """
+    Compute the wavelength bin edges for a given wavelength array.
+
+    Parameters
+    ----------
+    wav : ndarray
+        Wavelength array.
+
+    Returns
+    -------
+    bins : ndarray
+        Bin widths between consecutive wavelengths.
+    """
 
     wav_bins = np.empty(wav.size-1)
 
@@ -149,10 +184,91 @@ def wav_bins(wav):
     return wav_bins
 
 def find_nearest(array,value):
-    """Finds the index of the array element with value closest to the supplied value.
-    If multiple array elements are 'nearest' to the input value, then the lowest index is
-    selected.
     """
+    Find the index of the array element closest to the supplied value.
+
+    If multiple elements are equally close, the first match is returned.
+
+    Parameters
+    ----------
+    array : ndarray
+        Array to search.
+    value : float
+        Target value.
+
+    Returns
+    -------
+    index : int
+        Index of the closest array element.
+    """
+
 
     idx = np.argwhere(np.abs(array-value) == np.abs(array-value).min())[0][0]
     return idx
+
+
+# def instrument_convolution(wav, spec, instrument="NIMS"):
+#     """
+#     Convolve a spectrum with an instrument-specific response function.
+
+#     Currently supports:
+#     - Galileo NIMS (default: boxcar of 0.03 μm FWHM)
+
+#     Parameters
+#     ----------
+#     spectrum : ndarray
+#         Input reflectance spectrum.
+#     wavelengths : ndarray
+#         Wavelength array corresponding to the spectrum.
+#     instrument : str, optional
+#         Name of the instrument to simulate (default is 'nims').
+
+#     Returns
+#     -------
+#     spectrum_convolved : ndarray
+#         Convolved spectrum.
+#     """
+
+
+#     return wav, spec
+
+#     # if instrument is not NIMS, print an error
+
+
+#     # define NIMS convolution function
+
+
+#     # convolve with input arrays
+
+def Z_to_sigma(ln_Z1, ln_Z2):
+    """
+    Convert log-evidences of two models to a sigma confidence level.
+
+    Parameters
+    ----------
+    ln_Z1 : float
+        Log-evidence of full model.
+    ln_Z2 : float
+        Log-evidence of reduced model.
+
+    Returns
+    -------
+    B : float
+        Bayes factor.
+    sigma : float
+        Sigma confidence level.
+    """
+    delta_logZ = ln_Z1 - ln_Z2
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        B = np.exp(delta_logZ)
+
+    # if not np.isfinite(B) or B < 1.0:
+    #     warnings.warn("Bayes factor is invalid (infinite or < 1); sigma significance may be meaningless.")
+    #     return np.inf, np.inf
+
+    p = np.real(np.exp(W((-1.0 / (B * np.exp(1))), -1)))
+    sigma = np.sqrt(2) * erfcinv(p)
+
+    return B, sigma
