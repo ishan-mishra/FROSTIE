@@ -19,6 +19,10 @@
    :target: https://github.com/ishan-mishra/FROSTIE/actions/workflows/pytest_testing.yml
    :alt: Pytest Test Suite Status
 
+.. image:: https://img.shields.io/badge/Made%20at-Code/Astro-blueviolet.svg
+   :target: https://semaphorep.github.io/codeastro/
+   :alt: A rectangular badge, half black half purple containing the text made at Code Astro
+
 |
 
 **A Python Package for Analysis of Reflectance Spectroscopy of Airless Planetary Surfaces**
